@@ -1,772 +1,968 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>GitHub Mobile</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --surface2: #21262d;
-      --border: #30363d;
-      --accent: #58a6ff;
-      --accent2: #3fb950;
-      --accent3: #f78166;
-      --accent4: #d2a8ff;
-      --text: #e6edf3;
-      --text-muted: #7d8590;
-      --text-dim: #484f58;
-      --tag-bg: #1f6feb26;
-      --radius: 12px;
-      --radius-sm: 8px;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>여행 계획 슬라이드</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root{
+  --bg:#0d0d0d;
+  --white:#f0ece4;
+  --gold:#c9a84c;
+  --gold2:#e8cc7a;
+  --dim:rgba(240,236,228,.55);
+  --glass:rgba(255,255,255,.04);
+  --border:rgba(201,168,76,.25);
+}
 
-    body {
-      font-family: 'Outfit', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg)}
 
-    /* Phone frame */
-    .phone {
-      width: 375px;
-      height: 812px;
-      background: var(--bg);
-      border-radius: 48px;
-      border: 2px solid var(--border);
-      box-shadow:
-        0 0 0 6px #0d1117,
-        0 0 0 8px #30363d,
-        0 40px 80px rgba(0,0,0,0.8);
-      overflow: hidden;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
+body{
+  font-family:'Outfit',sans-serif;
+  color:var(--white);
+  cursor:default;
+}
 
-    /* Notch */
-    .notch {
-      position: absolute;
-      top: 0; left: 50%; transform: translateX(-50%);
-      width: 120px; height: 28px;
-      background: #0d1117;
-      border-radius: 0 0 18px 18px;
-      z-index: 100;
-      border: 2px solid var(--border);
-      border-top: none;
-    }
+/* ── SLIDESHOW WRAPPER ── */
+#show{
+  position:relative;
+  width:100%;height:100%;
+}
 
-    /* Status bar */
-    .statusbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 24px 4px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text);
-      flex-shrink: 0;
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .statusbar-right { display: flex; gap: 5px; align-items: center; }
-    .status-icon { font-size: 12px; }
+/* ── SLIDE ── */
+.slide{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  opacity:0;
+  pointer-events:none;
+  transition:none;
+  overflow:hidden;
+}
 
-    /* Screen content area */
-    .screen {
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-    }
+.slide.active{
+  opacity:1;
+  pointer-events:all;
+}
 
-    /* Page */
-    .page {
-      position: absolute;
-      inset: 0;
-      overflow-y: auto;
-      display: none;
-      flex-direction: column;
-      scrollbar-width: none;
-      animation: slideIn 0.28s cubic-bezier(0.4,0,0.2,1);
-    }
-    .page::-webkit-scrollbar { display: none; }
-    .page.active { display: flex; }
+/* transition classes */
+.slide.exit-left { animation: exitLeft .55s cubic-bezier(.77,0,.18,1) forwards; }
+.slide.exit-right{ animation: exitRight .55s cubic-bezier(.77,0,.18,1) forwards; }
+.slide.enter-left{ animation: enterLeft .55s cubic-bezier(.77,0,.18,1) forwards; }
+.slide.enter-right{animation: enterRight .55s cubic-bezier(.77,0,.18,1) forwards;}
 
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(18px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes slideOut {
-      from { opacity: 1; transform: translateX(0); }
-      to   { opacity: 0; transform: translateX(-18px); }
-    }
+@keyframes exitLeft  { to{ transform:translateX(-100%); opacity:.3; } }
+@keyframes exitRight { to{ transform:translateX(100%);  opacity:.3; } }
+@keyframes enterLeft { from{ transform:translateX(100%); opacity:.3; } to{ transform:none; opacity:1; } }
+@keyframes enterRight{ from{ transform:translateX(-100%);opacity:.3; } to{ transform:none; opacity:1; } }
 
-    /* ── HOME page ── */
-    .home-header {
-      padding: 18px 20px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg);
-      position: sticky; top: 0; z-index: 10;
-    }
-    .home-logo {
-      display: flex; align-items: center; gap: 8px;
-    }
-    .home-logo svg { width: 26px; height: 26px; fill: var(--text); }
-    .home-logo-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 700; font-size: 18px; color: var(--text);
-    }
-    .avatar {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), var(--accent4));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; font-weight: 700; color: #fff;
-      flex-shrink: 0;
-    }
+/* ── PHOTO BG layer ── */
+.slide-bg{
+  position:absolute;
+  inset:0;
+  background:var(--bg);
+  z-index:0;
+  overflow:hidden;
+}
 
-    .search-bar {
-      margin: 14px 20px 10px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      display: flex; align-items: center; gap: 8px;
-      cursor: pointer;
-    }
-    .search-bar span { color: var(--text-muted); font-size: 14px; flex: 1; }
-    .search-icon { font-size: 15px; color: var(--text-muted); }
+.slide-bg img{
+  width:100%;height:100%;
+  object-fit:cover;
+  opacity:.45;
+  transition:transform 8s ease;
+}
 
-    .section-label {
-      padding: 14px 20px 8px;
-      font-size: 11px; font-weight: 700;
-      color: var(--text-muted); letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
+.slide.active .slide-bg img{ transform:scale(1.06); }
 
-    /* Activity feed */
-    .feed-item {
-      display: flex; gap: 12px;
-      padding: 12px 20px;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .feed-item:active { background: var(--surface); }
-    .feed-avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: linear-gradient(135deg, #f78166, #ff6b6b);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; color: #fff;
-      flex-shrink: 0;
-    }
-    .feed-avatar.green { background: linear-gradient(135deg, var(--accent2), #56d364); }
-    .feed-avatar.purple { background: linear-gradient(135deg, var(--accent4), #bc8cff); }
-    .feed-avatar.blue { background: linear-gradient(135deg, var(--accent), #79c0ff); }
-    .feed-content { flex: 1; min-width: 0; }
-    .feed-content p { font-size: 13px; line-height: 1.5; color: var(--text); }
-    .feed-content p strong { color: var(--accent); }
-    .feed-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-    .feed-tag {
-      display: inline-block;
-      background: var(--tag-bg);
-      color: var(--accent);
-      border-radius: 4px;
-      padding: 1px 6px;
-      font-size: 11px;
-      font-family: 'JetBrains Mono', monospace;
-      margin-top: 4px;
-    }
+.slide-bg-gradient{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(13,13,13,.85) 0%,rgba(13,13,13,.3) 60%,rgba(13,13,13,.7) 100%);
+}
 
-    /* ── REPOS page ── */
-    .page-header {
-      padding: 16px 20px 12px;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg);
-      position: sticky; top: 0; z-index: 10;
-      display: flex; align-items: center; gap: 12px;
-    }
-    .page-header h1 { font-size: 17px; font-weight: 700; }
-    .back-btn {
-      background: none; border: none; color: var(--accent);
-      font-size: 22px; cursor: pointer; line-height: 1;
-      padding: 0; display: flex; align-items: center;
-    }
-    .filter-tabs {
-      display: flex; gap: 6px;
-      padding: 10px 20px;
-      overflow-x: auto; scrollbar-width: none;
-      border-bottom: 1px solid var(--border);
-    }
-    .filter-tabs::-webkit-scrollbar { display: none; }
-    .tab-chip {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 14px;
-      font-size: 12px; font-weight: 500;
-      white-space: nowrap; cursor: pointer;
-      transition: all 0.15s; color: var(--text-muted);
-    }
-    .tab-chip.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-    }
+/* ── SLIDE CONTENT ── */
+.slide-content{
+  position:relative;
+  z-index:2;
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  padding:3.5rem 5rem;
+}
 
-    .repo-card {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .repo-card:active { background: var(--surface); }
-    .repo-name {
-      font-size: 15px; font-weight: 600;
-      color: var(--accent); margin-bottom: 4px;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .repo-badge {
-      font-size: 10px; font-weight: 600;
-      border: 1px solid var(--border);
-      border-radius: 10px; padding: 1px 7px;
-      color: var(--text-muted);
-    }
-    .repo-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 10px; }
-    .repo-langs { display: flex; gap: 14px; flex-wrap: wrap; }
-    .lang-dot {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 12px; color: var(--text-muted);
-    }
-    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .dot.js { background: #f1e05a; }
-    .dot.ts { background: #3178c6; }
-    .dot.py { background: #3572A5; }
-    .dot.go { background: #00ADD8; }
-    .dot.rust { background: #dea584; }
-    .dot.css { background: #563d7c; }
-    .star-count { margin-left: auto; display: flex; align-items: center; gap: 3px; font-size: 12px; color: var(--text-muted); }
+/* ── SLIDE TYPE: COVER ── */
+.slide-cover .slide-content{
+  justify-content:flex-end;
+}
 
-    /* ── EXPLORE page ── */
-    .trending-card {
-      margin: 10px 20px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px;
-      cursor: pointer;
-      transition: border-color 0.15s, transform 0.1s;
-    }
-    .trending-card:active { transform: scale(0.98); }
-    .trending-rank {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px; color: var(--text-dim);
-      margin-bottom: 6px;
-    }
-    .trending-name { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
-    .trending-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 10px; }
-    .trending-meta { display: flex; gap: 12px; align-items: center; }
-    .trend-up { color: var(--accent2); font-size: 12px; font-weight: 600; margin-left: auto; }
+.slide-cover .tag{
+  font-size:.7rem;
+  letter-spacing:.35em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:1.2rem;
+  opacity:0;
+  animation:none;
+}
+.slide.active .tag{ animation: fadeUp .7s .15s forwards; }
 
-    /* ── PROFILE page ── */
-    .profile-hero {
-      background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
-      padding: 24px 20px 20px;
-      border-bottom: 1px solid var(--border);
-      text-align: center;
-    }
-    .profile-avatar {
-      width: 80px; height: 80px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), var(--accent4));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 32px; font-weight: 700; color: #fff;
-      margin: 0 auto 12px;
-      border: 3px solid var(--border);
-    }
-    .profile-name { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
-    .profile-handle { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
-    .profile-bio { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px; max-width: 260px; margin-left: auto; margin-right: auto; }
-    .follow-btn {
-      background: var(--accent);
-      color: #fff; border: none;
-      border-radius: var(--radius-sm);
-      padding: 8px 28px;
-      font-size: 14px; font-weight: 600;
-      cursor: pointer; font-family: 'Outfit', sans-serif;
-      transition: opacity 0.15s;
-    }
-    .follow-btn:active { opacity: 0.8; }
-    .profile-stats {
-      display: flex; justify-content: center; gap: 32px;
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    .stat-item { text-align: center; }
-    .stat-num { font-size: 18px; font-weight: 700; display: block; }
-    .stat-lbl { font-size: 11px; color: var(--text-muted); }
-    .contrib-section { padding: 16px 20px; }
-    .contrib-title { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
-    .contrib-grid {
-      display: grid;
-      grid-template-columns: repeat(17, 1fr);
-      gap: 3px;
-    }
-    .contrib-cell {
-      width: 100%; aspect-ratio: 1;
-      border-radius: 2px;
-      background: var(--surface2);
-    }
-    .contrib-cell.l1 { background: #0e4429; }
-    .contrib-cell.l2 { background: #006d32; }
-    .contrib-cell.l3 { background: #26a641; }
-    .contrib-cell.l4 { background: #39d353; }
+.slide-cover h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(3.5rem,9vw,8rem);
+  font-weight:300;
+  line-height:1;
+  color:var(--white);
+  opacity:0;
+}
+.slide.active .slide-cover h1{ animation: fadeUp .8s .3s forwards; }
 
-    /* ── NOTIFICATIONS page ── */
-    .notif-item {
-      display: flex; gap: 12px;
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      transition: background 0.15s;
-      position: relative;
-    }
-    .notif-item:active { background: var(--surface); }
-    .notif-item.unread::before {
-      content: '';
-      position: absolute;
-      left: 8px; top: 50%; transform: translateY(-50%);
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-    .notif-icon {
-      width: 36px; height: 36px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex-shrink: 0;
-    }
-    .notif-content { flex: 1; min-width: 0; }
-    .notif-title { font-size: 13px; font-weight: 500; line-height: 1.4; }
-    .notif-title strong { color: var(--accent); }
-    .notif-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .notif-time { font-size: 11px; color: var(--text-dim); flex-shrink: 0; align-self: flex-start; }
+.slide-cover h1 em{
+  font-style:italic;
+  color:var(--gold2);
+}
 
-    /* ── Bottom Nav ── */
-    .bottom-nav {
-      display: flex;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 8px 0 20px;
-      flex-shrink: 0;
-    }
-    .nav-item {
-      flex: 1;
-      display: flex; flex-direction: column;
-      align-items: center; gap: 3px;
-      cursor: pointer;
-      padding: 6px 0;
-      border: none; background: none;
-      transition: transform 0.1s;
-      color: var(--text-muted);
-    }
-    .nav-item:active { transform: scale(0.9); }
-    .nav-item.active { color: var(--accent); }
-    .nav-icon { font-size: 20px; position: relative; }
-    .nav-badge {
-      position: absolute; top: -4px; right: -6px;
-      background: var(--accent3);
-      color: #fff; border-radius: 10px;
-      font-size: 9px; font-weight: 700;
-      padding: 1px 4px; line-height: 1.4;
-    }
-    .nav-label { font-size: 10px; font-weight: 500; }
+.slide-cover .subtitle{
+  margin-top:1.4rem;
+  font-size:1rem;
+  color:var(--dim);
+  max-width:50ch;
+  line-height:1.7;
+  opacity:0;
+}
+.slide.active .slide-cover .subtitle{ animation: fadeUp .8s .5s forwards; }
 
-    /* Home indicator */
-    .home-indicator {
-      position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
-      width: 100px; height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      pointer-events: none;
-    }
-  </style>
+.cover-meta{
+  display:flex;
+  gap:3rem;
+  margin-top:2.5rem;
+  padding-top:2rem;
+  border-top:1px solid var(--border);
+  opacity:0;
+}
+.slide.active .cover-meta{ animation: fadeUp .8s .65s forwards; }
+
+.cover-meta-item .label{
+  font-size:.65rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:.3rem;
+}
+
+.cover-meta-item .val{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.3rem;
+  font-weight:600;
+}
+
+/* ── SLIDE TYPE: OVERVIEW ── */
+.slide-overview .slide-content{
+  justify-content:center;
+}
+
+/* ── SLIDE TYPE: SPLIT (photo left + text right) ── */
+.slide-split .slide-content{
+  flex-direction:row;
+  padding:0;
+}
+
+.split-photo{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  cursor:pointer;
+}
+
+.split-photo img{
+  width:100%;height:100%;object-fit:cover;
+  transition:transform .5s ease;
+}
+.split-photo:hover img{ transform:scale(1.04); }
+
+.split-photo-overlay{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(to right,transparent 60%,var(--bg));
+}
+
+.split-text{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:4rem 4.5rem;
+  background:var(--bg);
+}
+
+/* ── SLIDE TYPE: GRID ── */
+.slide-grid .slide-content{
+  justify-content:flex-start;
+}
+
+.grid-photos{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1rem;
+  margin-top:2rem;
+  flex:1;
+}
+
+.photo-cell{
+  position:relative;
+  border-radius:2px;
+  overflow:hidden;
+  cursor:pointer;
+  background:rgba(255,255,255,.05);
+  border:1px dashed var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:160px;
+  transition:border-color .2s;
+}
+.photo-cell:hover{ border-color:var(--gold); }
+
+.photo-cell img{
+  position:absolute;
+  inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+}
+
+.photo-cell .upload-hint{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:.5rem;
+  color:var(--border);
+  font-size:.75rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  pointer-events:none;
+  transition:color .2s;
+}
+.photo-cell:hover .upload-hint{ color:var(--gold); }
+
+.upload-hint svg{ width:28px;height:28px;opacity:.6; }
+
+.photo-cell input[type=file]{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+  width:100%;height:100%;
+}
+
+/* ── SLIDE TYPE: BUDGET ── */
+.slide-budget .slide-content{ justify-content:center; }
+
+.budget-rows{ margin-top:2rem; display:flex; flex-direction:column; gap:.4rem; }
+
+.budget-row{
+  display:grid;
+  grid-template-columns:1.5rem 1fr auto;
+  align-items:center;
+  gap:1rem;
+  padding:.9rem 1.2rem;
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:2px;
+  transition:background .2s;
+}
+.budget-row:hover{ background:rgba(201,168,76,.07); }
+
+.budget-row .icon{ font-size:1rem; }
+.budget-row .name{ font-size:.85rem; color:var(--dim); }
+.budget-row .amt{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.1rem;
+  color:var(--gold2);
+}
+
+.budget-total{
+  margin-top:1rem;
+  padding:1.2rem 1.5rem;
+  background:rgba(201,168,76,.12);
+  border:1px solid var(--gold);
+  border-radius:2px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.budget-total .label{ font-size:.75rem; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); }
+.budget-total .total{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2rem;
+  color:var(--gold2);
+}
+
+/* ── COMMON TEXT STYLES ── */
+.slide-label{
+  font-size:.65rem;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:1rem;
+  opacity:0;
+}
+.slide.active .slide-label{ animation: fadeUp .6s .1s forwards; }
+
+.slide-heading{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2rem,4vw,3.5rem);
+  font-weight:300;
+  line-height:1.1;
+  opacity:0;
+}
+.slide.active .slide-heading{ animation: fadeUp .7s .2s forwards; }
+
+.slide-body{
+  margin-top:1.5rem;
+  font-size:.9rem;
+  color:var(--dim);
+  line-height:1.8;
+  max-width:55ch;
+  opacity:0;
+}
+.slide.active .slide-body{ animation: fadeUp .7s .35s forwards; }
+
+/* schedule list */
+.schedule{
+  margin-top:1.8rem;
+  display:flex;
+  flex-direction:column;
+  gap:.8rem;
+  opacity:0;
+}
+.slide.active .schedule{ animation: fadeUp .7s .45s forwards; }
+
+.sched-item{
+  display:flex;
+  gap:1.2rem;
+  align-items:flex-start;
+  padding:.8rem 1rem;
+  background:var(--glass);
+  border-left:2px solid var(--gold);
+  border-radius:0 2px 2px 0;
+}
+
+.sched-time{
+  font-size:.65rem;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:var(--gold);
+  min-width:52px;
+  padding-top:.15rem;
+}
+
+.sched-desc{ font-size:.85rem; color:var(--dim); line-height:1.6; }
+
+/* tips grid */
+.tips-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1rem;
+  margin-top:2rem;
+  opacity:0;
+}
+.slide.active .tips-grid{ animation: fadeUp .7s .3s forwards; }
+
+.tip-card{
+  padding:1.5rem;
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:2px;
+  transition:border-color .25s, background .25s;
+}
+.tip-card:hover{ border-color:var(--gold); background:rgba(201,168,76,.06); }
+
+.tip-icon{ font-size:1.5rem; margin-bottom:.7rem; }
+.tip-title{ font-size:.8rem; font-weight:500; margin-bottom:.4rem; }
+.tip-body{ font-size:.75rem; color:var(--dim); line-height:1.7; }
+
+/* ── PHOTO UPLOAD on slide bg ── */
+.bg-upload-btn{
+  position:absolute;
+  bottom:1.2rem;
+  left:1.2rem;
+  z-index:10;
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  padding:.5rem 1rem;
+  background:rgba(13,13,13,.8);
+  border:1px solid var(--border);
+  border-radius:2px;
+  font-size:.65rem;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:var(--dim);
+  cursor:pointer;
+  transition:border-color .2s, color .2s;
+}
+.bg-upload-btn:hover{ border-color:var(--gold); color:var(--gold); }
+.bg-upload-btn input{ position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%; }
+
+/* ── NAV BAR ── */
+#nav{
+  position:fixed;
+  bottom:2.5rem;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  padding:.7rem 1.4rem;
+  background:rgba(13,13,13,.85);
+  backdrop-filter:blur(16px);
+  border:1px solid var(--border);
+  border-radius:40px;
+}
+
+.nav-btn{
+  width:36px;height:36px;
+  border-radius:50%;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--white);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s, border-color .2s;
+  font-size:1rem;
+}
+.nav-btn:hover{ background:rgba(201,168,76,.15); border-color:var(--gold); }
+
+.slide-counter{
+  font-size:.75rem;
+  letter-spacing:.15em;
+  color:var(--dim);
+  min-width:50px;
+  text-align:center;
+}
+
+.dot-row{
+  display:flex;
+  gap:.45rem;
+  align-items:center;
+}
+
+.dot{
+  width:5px;height:5px;
+  border-radius:50%;
+  background:var(--border);
+  cursor:pointer;
+  transition:background .2s, transform .2s;
+}
+.dot.active{ background:var(--gold); transform:scale(1.4); }
+
+/* ── TOP CHROME ── */
+#chrome{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:999;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:1.2rem 2.5rem;
+  background:linear-gradient(to bottom,rgba(13,13,13,.7),transparent);
+  pointer-events:none;
+}
+
+.chrome-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1rem;
+  color:var(--gold);
+  letter-spacing:.08em;
+}
+
+.chrome-slide-name{
+  font-size:.65rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--dim);
+}
+
+/* ── FULLSCREEN btn ── */
+#fs-btn{
+  position:fixed;
+  top:1.2rem;
+  right:2.5rem;
+  z-index:1000;
+  background:transparent;
+  border:none;
+  color:var(--dim);
+  cursor:pointer;
+  font-size:.7rem;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  display:flex;align-items:center;gap:.4rem;
+  transition:color .2s;
+}
+#fs-btn:hover{ color:var(--gold); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{
+  from{ opacity:0; transform:translateY(18px); }
+  to  { opacity:1; transform:none; }
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .slide-content{ padding:2rem; }
+  .split-photo{ display:none; }
+  .slide-split .split-text{ padding:2rem; }
+  .tips-grid{ grid-template-columns:1fr 1fr; }
+  .grid-photos{ grid-template-columns:1fr 1fr; }
+  #nav{ bottom:1.2rem; }
+}
+</style>
 </head>
 <body>
 
-<div class="phone">
-  <div class="notch"></div>
+<!-- TOP CHROME -->
+<div id="chrome">
+  <div class="chrome-logo">✈ Travel Plan</div>
+  <div class="chrome-slide-name" id="slide-name">표지</div>
+</div>
+<button id="fs-btn" onclick="toggleFS()">⛶ 전체화면</button>
 
-  <!-- Status Bar -->
-  <div class="statusbar">
-    <span>9:41</span>
-    <div class="statusbar-right">
-      <span class="status-icon">▲▲▲</span>
-      <span class="status-icon">🛜</span>
-      <span class="status-icon">🔋</span>
+<!-- SLIDESHOW -->
+<div id="show">
+
+  <!-- ── SLIDE 0: COVER ── -->
+  <div class="slide slide-cover active" data-name="표지">
+    <div class="slide-bg">
+      <img id="bg0" src="" alt="" style="display:none"/>
+      <div class="slide-bg-gradient"></div>
+    </div>
+    <!-- bg color fallback -->
+    <div style="position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 80% 70% at 30% 60%,#1a0f05,#0d0d0d)"></div>
+
+    <div class="bg-upload-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      배경 사진 업로드
+      <input type="file" accept="image/*" onchange="setBg(this,'bg0')"/>
+    </div>
+
+    <div class="slide-content">
+      <p class="tag">✈ 해외 여행 계획서</p>
+      <h1>나의 <em>특별한</em><br/>여행지</h1>
+      <p class="subtitle">여행지 소개 및 여행 컨셉을 여기에 작성하세요.<br/>설레는 여행의 시작입니다.</p>
+      <div class="cover-meta">
+        <div class="cover-meta-item">
+          <div class="label">여행지</div>
+          <div class="val">나라 / 도시</div>
+        </div>
+        <div class="cover-meta-item">
+          <div class="label">기간</div>
+          <div class="val">__ 박 __ 일</div>
+        </div>
+        <div class="cover-meta-item">
+          <div class="label">출발일</div>
+          <div class="val">20__ . __ . __</div>
+        </div>
+        <div class="cover-meta-item">
+          <div class="label">인원</div>
+          <div class="val">__ 명</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Screens -->
-  <div class="screen">
+  <!-- ── SLIDE 1: OVERVIEW ── -->
+  <div class="slide slide-overview" data-name="여행 개요">
+    <div class="slide-bg">
+      <img id="bg1" src="" alt="" style="display:none"/>
+      <div class="slide-bg-gradient"></div>
+    </div>
+    <div style="position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 60% 80% at 80% 20%,#0f1a14,#0d0d0d)"></div>
 
-    <!-- HOME -->
-    <div class="page active" id="page-home">
-      <div class="home-header">
-        <div class="home-logo">
-          <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
-              0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
-              -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
-              .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
-              -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
-              .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
-              .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
-              0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-          </svg>
-          <span class="home-logo-text">GitHub</span>
-        </div>
-        <div class="avatar">K</div>
-      </div>
-
-      <div class="search-bar">
-        <span class="search-icon">🔍</span>
-        <span>Search or jump to...</span>
-      </div>
-
-      <div class="section-label">Recent Activity</div>
-
-      <div class="feed-item">
-        <div class="feed-avatar blue">T</div>
-        <div class="feed-content">
-          <p><strong>torvalds</strong> pushed to <strong>linux/linux</strong></p>
-          <div class="feed-tag">kernel: mm: fix memory leak</div>
-          <div class="feed-meta">2분 전</div>
-        </div>
-      </div>
-      <div class="feed-item">
-        <div class="feed-avatar green">V</div>
-        <div class="feed-content">
-          <p><strong>vuejs/core</strong>에 새 PR이 열렸습니다</p>
-          <div class="feed-tag">#10241 feat: improve Suspense</div>
-          <div class="feed-meta">15분 전</div>
-        </div>
-      </div>
-      <div class="feed-item">
-        <div class="feed-avatar">M</div>
-        <div class="feed-content">
-          <p><strong>microsoft/vscode</strong>가 1.89.0을 릴리즈했습니다 🎉</p>
-          <div class="feed-meta">1시간 전</div>
-        </div>
-      </div>
-      <div class="feed-item">
-        <div class="feed-avatar purple">S</div>
-        <div class="feed-content">
-          <p><strong>shadcn</strong>이 <strong>ui</strong>에 스타를 주었습니다 ⭐</p>
-          <div class="feed-meta">3시간 전</div>
-        </div>
-      </div>
-      <div class="feed-item">
-        <div class="feed-avatar green">D</div>
-        <div class="feed-content">
-          <p><strong>denoland/deno</strong>에서 이슈가 닫혔습니다</p>
-          <div class="feed-tag">#23011 Fixed!</div>
-          <div class="feed-meta">5시간 전</div>
-        </div>
-      </div>
-
-      <div class="section-label">Pinned Repos</div>
-      <div class="feed-item">
-        <div style="font-size:20px;flex-shrink:0;">📦</div>
-        <div class="feed-content">
-          <p><strong>my-awesome-project</strong></p>
-          <div class="feed-meta">TypeScript • ⭐ 142 • Updated today</div>
-        </div>
-      </div>
-      <div class="feed-item">
-        <div style="font-size:20px;flex-shrink:0;">🤖</div>
-        <div class="feed-content">
-          <p><strong>ai-chatbot-clone</strong></p>
-          <div class="feed-meta">Python • ⭐ 87 • Updated 2일 전</div>
-        </div>
-      </div>
+    <div class="bg-upload-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      배경 사진 업로드
+      <input type="file" accept="image/*" onchange="setBg(this,'bg1')"/>
     </div>
 
-    <!-- REPOS -->
-    <div class="page" id="page-repos">
-      <div class="page-header">
-        <h1>📁 Repositories</h1>
-      </div>
-      <div class="filter-tabs">
-        <div class="tab-chip active">All</div>
-        <div class="tab-chip">Public</div>
-        <div class="tab-chip">Private</div>
-        <div class="tab-chip">Forked</div>
-        <div class="tab-chip">Archived</div>
+    <div class="slide-content">
+      <p class="slide-label">01 — 여행 개요</p>
+      <h2 class="slide-heading">Trip Overview</h2>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem;opacity:0" class="anim-cards">
+        <div class="budget-row" style="flex-direction:column;align-items:flex-start;gap:.4rem">
+          <span class="icon">🌍</span>
+          <span class="sched-time">여행지</span>
+          <span class="sched-desc">나라 / 도시를 작성하세요.</span>
+        </div>
+        <div class="budget-row" style="flex-direction:column;align-items:flex-start;gap:.4rem">
+          <span class="icon">📅</span>
+          <span class="sched-time">일정</span>
+          <span class="sched-desc">출발일 ~ 귀국일을 작성하세요.</span>
+        </div>
+        <div class="budget-row" style="flex-direction:column;align-items:flex-start;gap:.4rem">
+          <span class="icon">👥</span>
+          <span class="sched-time">인원</span>
+          <span class="sched-desc">여행 인원 및 구성을 작성하세요.</span>
+        </div>
+        <div class="budget-row" style="flex-direction:column;align-items:flex-start;gap:.4rem">
+          <span class="icon">🎯</span>
+          <span class="sched-time">테마</span>
+          <span class="sched-desc">관광 / 휴양 / 미식 등 테마를 작성하세요.</span>
+        </div>
       </div>
 
-      <div class="repo-card">
-        <div class="repo-name">my-awesome-project <span class="repo-badge">Public</span></div>
-        <div class="repo-desc">Next.js 14 + TypeScript로 만든 풀스택 웹 애플리케이션</div>
-        <div class="repo-langs">
-          <div class="lang-dot"><span class="dot ts"></span> TypeScript</div>
-          <div class="star-count">⭐ 142</div>
-        </div>
-      </div>
-      <div class="repo-card">
-        <div class="repo-name">ai-chatbot-clone <span class="repo-badge">Public</span></div>
-        <div class="repo-desc">OpenAI API를 활용한 GPT 챗봇 클론 프로젝트</div>
-        <div class="repo-langs">
-          <div class="lang-dot"><span class="dot py"></span> Python</div>
-          <div class="star-count">⭐ 87</div>
-        </div>
-      </div>
-      <div class="repo-card">
-        <div class="repo-name">portfolio-v3 <span class="repo-badge">Public</span></div>
-        <div class="repo-desc">세 번째 리뉴얼 포트폴리오. Astro + TailwindCSS</div>
-        <div class="repo-langs">
-          <div class="lang-dot"><span class="dot js"></span> JavaScript</div>
-          <div class="lang-dot"><span class="dot css"></span> CSS</div>
-          <div class="star-count">⭐ 34</div>
-        </div>
-      </div>
-      <div class="repo-card">
-        <div class="repo-name">rust-cli-tools <span class="repo-badge">Private</span></div>
-        <div class="repo-desc">일상 자동화를 위한 Rust CLI 도구 모음</div>
-        <div class="repo-langs">
-          <div class="lang-dot"><span class="dot rust"></span> Rust</div>
-          <div class="star-count">⭐ 12</div>
-        </div>
-      </div>
-      <div class="repo-card">
-        <div class="repo-name">go-microservices <span class="repo-badge">Private</span></div>
-        <div class="repo-desc">Go로 구현한 마이크로서비스 아키텍처 예제</div>
-        <div class="repo-langs">
-          <div class="lang-dot"><span class="dot go"></span> Go</div>
-          <div class="star-count">⭐ 28</div>
-        </div>
-      </div>
+      <p class="slide-body" style="max-width:70ch">여행에 대한 전반적인 소개와 기대하는 점, 여행을 계획하게 된 이유 등을 여기에 자유롭게 작성하세요.</p>
     </div>
-
-    <!-- EXPLORE -->
-    <div class="page" id="page-explore">
-      <div class="page-header">
-        <h1>🔥 Trending</h1>
-      </div>
-
-      <div style="padding:10px 20px 0;display:flex;gap:8px;">
-        <div class="tab-chip active">Today</div>
-        <div class="tab-chip">This Week</div>
-        <div class="tab-chip">This Month</div>
-      </div>
-
-      <div class="trending-card">
-        <div class="trending-rank">#1 Trending Today</div>
-        <div class="trending-name">vercel / ai</div>
-        <div class="trending-desc">Build AI-powered streaming text and chat UIs with React, Svelte, Vue, and Solid</div>
-        <div class="trending-meta">
-          <div class="lang-dot"><span class="dot ts"></span> TypeScript</div>
-          <span>⭐ 41.2k</span>
-          <span class="trend-up">▲ 2,341 stars today</span>
-        </div>
-      </div>
-      <div class="trending-card">
-        <div class="trending-rank">#2 Trending Today</div>
-        <div class="trending-name">ollama / ollama</div>
-        <div class="trending-desc">Get up and running with large language models locally</div>
-        <div class="trending-meta">
-          <div class="lang-dot"><span class="dot go"></span> Go</div>
-          <span>⭐ 78.5k</span>
-          <span class="trend-up">▲ 1,890 stars today</span>
-        </div>
-      </div>
-      <div class="trending-card">
-        <div class="trending-rank">#3 Trending Today</div>
-        <div class="trending-name">microsoft / TypeScript</div>
-        <div class="trending-desc">TypeScript is a superset of JavaScript that compiles to clean JS output</div>
-        <div class="trending-meta">
-          <div class="lang-dot"><span class="dot ts"></span> TypeScript</div>
-          <span>⭐ 100k</span>
-          <span class="trend-up">▲ 1,124 stars today</span>
-        </div>
-      </div>
-      <div class="trending-card">
-        <div class="trending-rank">#4 Trending Today</div>
-        <div class="trending-name">facebook / react</div>
-        <div class="trending-desc">The library for web and native user interfaces</div>
-        <div class="trending-meta">
-          <div class="lang-dot"><span class="dot js"></span> JavaScript</div>
-          <span>⭐ 226k</span>
-          <span class="trend-up">▲ 987 stars today</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- NOTIFICATIONS -->
-    <div class="page" id="page-notifications">
-      <div class="page-header">
-        <h1>🔔 Notifications</h1>
-      </div>
-
-      <div class="notif-item unread">
-        <div class="notif-icon">💬</div>
-        <div class="notif-content">
-          <div class="notif-title"><strong>@gaeun_dev</strong>이 PR에 댓글을 남겼습니다</div>
-          <div class="notif-sub">my-awesome-project · LGTM! 코드 스타일이 깔끔하네요 👍</div>
-        </div>
-        <div class="notif-time">2m</div>
-      </div>
-      <div class="notif-item unread">
-        <div class="notif-icon">✅</div>
-        <div class="notif-content">
-          <div class="notif-title">CI/CD가 성공적으로 완료됐습니다</div>
-          <div class="notif-sub">my-awesome-project · deploy to production ✓</div>
-        </div>
-        <div class="notif-time">18m</div>
-      </div>
-      <div class="notif-item unread">
-        <div class="notif-icon">🔀</div>
-        <div class="notif-content">
-          <div class="notif-title"><strong>@dev_junho</strong>가 PR을 열었습니다</div>
-          <div class="notif-sub">go-microservices · feat: add gRPC health check</div>
-        </div>
-        <div class="notif-time">1h</div>
-      </div>
-      <div class="notif-item">
-        <div class="notif-icon">⭐</div>
-        <div class="notif-content">
-          <div class="notif-title"><strong>@minsu_codes</strong>가 스타를 눌렀습니다</div>
-          <div class="notif-sub">ai-chatbot-clone</div>
-        </div>
-        <div class="notif-time">3h</div>
-      </div>
-      <div class="notif-item">
-        <div class="notif-icon">⚠️</div>
-        <div class="notif-content">
-          <div class="notif-title">보안 취약점이 발견됐습니다</div>
-          <div class="notif-sub">portfolio-v3 · lodash 4.17.15 → 업데이트 필요</div>
-        </div>
-        <div class="notif-time">5h</div>
-      </div>
-      <div class="notif-item">
-        <div class="notif-icon">🍴</div>
-        <div class="notif-content">
-          <div class="notif-title"><strong>@jiyeon_k</strong>가 포크했습니다</div>
-          <div class="notif-sub">ai-chatbot-clone</div>
-        </div>
-        <div class="notif-time">1d</div>
-      </div>
-    </div>
-
-    <!-- PROFILE -->
-    <div class="page" id="page-profile">
-      <div class="profile-hero">
-        <div class="profile-avatar">K</div>
-        <div class="profile-name">김개발</div>
-        <div class="profile-handle">@kimgaebal_dev</div>
-        <div class="profile-bio">풀스택 개발자 🧑‍💻 · TypeScript / Go / Rust 좋아함 · 커피 없이 못 살아 ☕</div>
-        <button class="follow-btn">Follow</button>
-      </div>
-
-      <div class="profile-stats">
-        <div class="stat-item">
-          <span class="stat-num">42</span>
-          <span class="stat-lbl">Repos</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-num">1.2k</span>
-          <span class="stat-lbl">Followers</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-num">387</span>
-          <span class="stat-lbl">Following</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-num">3.4k</span>
-          <span class="stat-lbl">Stars</span>
-        </div>
-      </div>
-
-      <div class="contrib-section">
-        <div class="contrib-title">1,247 contributions in the last year</div>
-        <div class="contrib-grid" id="contrib-grid"></div>
-      </div>
-    </div>
-
-  </div><!-- /screen -->
-
-  <!-- Bottom Nav -->
-  <div class="bottom-nav">
-    <button class="nav-item active" onclick="navigate('home', this)">
-      <span class="nav-icon">🏠</span>
-      <span class="nav-label">Home</span>
-    </button>
-    <button class="nav-item" onclick="navigate('repos', this)">
-      <span class="nav-icon">📁</span>
-      <span class="nav-label">Repos</span>
-    </button>
-    <button class="nav-item" onclick="navigate('explore', this)">
-      <span class="nav-icon">🔭</span>
-      <span class="nav-label">Explore</span>
-    </button>
-    <button class="nav-item" onclick="navigate('notifications', this)">
-      <span class="nav-icon" style="position:relative">🔔<span class="nav-badge">3</span></span>
-      <span class="nav-label">Inbox</span>
-    </button>
-    <button class="nav-item" onclick="navigate('profile', this)">
-      <span class="nav-icon">👤</span>
-      <span class="nav-label">Profile</span>
-    </button>
   </div>
 
-  <div class="home-indicator"></div>
+  <!-- ── SLIDE 2: DAY1 (split) ── -->
+  <div class="slide slide-split" data-name="Day 1">
+    <div class="slide-bg" style="z-index:0">
+      <div class="slide-bg-gradient"></div>
+    </div>
+
+    <div class="slide-content">
+      <!-- LEFT PHOTO -->
+      <div class="split-photo" style="position:relative">
+        <div style="width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;color:var(--border);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;position:relative">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          사진 업로드
+          <input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="setSplitPhoto(this)"/>
+          <img id="split2img" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none"/>
+        </div>
+        <div class="split-photo-overlay"></div>
+      </div>
+
+      <!-- RIGHT TEXT -->
+      <div class="split-text">
+        <p class="slide-label">02 — 일정</p>
+        <h2 class="slide-heading">Day 1<br/><em style="font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold2);font-size:1.8rem">도착 & 첫째 날</em></h2>
+        <div class="schedule">
+          <div class="sched-item">
+            <span class="sched-time">오전</span>
+            <span class="sched-desc">오전 일정을 작성하세요.<br/>(예: 공항 도착, 호텔 체크인)</span>
+          </div>
+          <div class="sched-item">
+            <span class="sched-time">오후</span>
+            <span class="sched-desc">오후 일정을 작성하세요.<br/>(예: 관광지 방문, 시내 투어)</span>
+          </div>
+          <div class="sched-item">
+            <span class="sched-time">저녁</span>
+            <span class="sched-desc">저녁 일정을 작성하세요.<br/>(예: 현지 맛집, 야경 감상)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 3: DAY2 (split, photo right) ── -->
+  <div class="slide slide-split" data-name="Day 2">
+    <div class="slide-content" style="flex-direction:row-reverse">
+      <!-- RIGHT PHOTO -->
+      <div class="split-photo" style="position:relative">
+        <div style="width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;color:var(--border);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;position:relative">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          사진 업로드
+          <input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="setSplitPhoto(this)"/>
+          <img id="split3img" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none"/>
+        </div>
+        <div style="position:absolute;inset:0;background:linear-gradient(to left,transparent 60%,#0d0d0d)"></div>
+      </div>
+
+      <!-- LEFT TEXT -->
+      <div class="split-text">
+        <p class="slide-label">03 — 일정</p>
+        <h2 class="slide-heading">Day 2<br/><em style="font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold2);font-size:1.8rem">둘째 날</em></h2>
+        <div class="schedule">
+          <div class="sched-item">
+            <span class="sched-time">오전</span>
+            <span class="sched-desc">오전 일정을 작성하세요.</span>
+          </div>
+          <div class="sched-item">
+            <span class="sched-time">오후</span>
+            <span class="sched-desc">오후 일정을 작성하세요.</span>
+          </div>
+          <div class="sched-item">
+            <span class="sched-time">저녁</span>
+            <span class="sched-desc">저녁 일정을 작성하세요.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 4: DAY3 (split) ── -->
+  <div class="slide slide-split" data-name="Day 3">
+    <div class="slide-content">
+      <div class="split-photo" style="position:relative">
+        <div style="width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;color:var(--border);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;position:relative">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          사진 업로드
+          <input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="setSplitPhoto(this)"/>
+          <img id="split4img" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none"/>
+        </div>
+        <div class="split-photo-overlay"></div>
+      </div>
+      <div class="split-text">
+        <p class="slide-label">04 — 일정</p>
+        <h2 class="slide-heading">Day 3<br/><em style="font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold2);font-size:1.8rem">셋째 날</em></h2>
+        <div class="schedule">
+          <div class="sched-item">
+            <span class="sched-time">오전</span>
+            <span class="sched-desc">오전 일정을 작성하세요.</span>
+          </div>
+          <div class="sched-item">
+            <span class="sched-time">오후</span>
+            <span class="sched-desc">오후 일정을 작성하세요.</span>
+          </div>
+          <div class="sched-item">
+            <span class="sched-time">저녁</span>
+            <span class="sched-desc">저녁 일정을 작성하세요.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 5: PHOTO GALLERY (grid) ── -->
+  <div class="slide slide-grid" data-name="사진 갤러리">
+    <div class="slide-bg">
+      <div style="position:absolute;inset:0;background:#0d0d0d"></div>
+    </div>
+    <div class="slide-content">
+      <p class="slide-label">05 — 갤러리</p>
+      <h2 class="slide-heading">Photo Gallery</h2>
+
+      <div class="grid-photos">
+        <!-- 6 photo cells -->
+        <div class="photo-cell">
+          <div class="upload-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>사진 추가</div>
+          <input type="file" accept="image/*" onchange="addGridPhoto(this)"/>
+        </div>
+        <div class="photo-cell">
+          <div class="upload-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>사진 추가</div>
+          <input type="file" accept="image/*" onchange="addGridPhoto(this)"/>
+        </div>
+        <div class="photo-cell">
+          <div class="upload-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>사진 추가</div>
+          <input type="file" accept="image/*" onchange="addGridPhoto(this)"/>
+        </div>
+        <div class="photo-cell">
+          <div class="upload-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>사진 추가</div>
+          <input type="file" accept="image/*" onchange="addGridPhoto(this)"/>
+        </div>
+        <div class="photo-cell">
+          <div class="upload-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>사진 추가</div>
+          <input type="file" accept="image/*" onchange="addGridPhoto(this)"/>
+        </div>
+        <div class="photo-cell">
+          <div class="upload-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>사진 추가</div>
+          <input type="file" accept="image/*" onchange="addGridPhoto(this)"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 6: BUDGET ── -->
+  <div class="slide slide-budget" data-name="예산 계획">
+    <div class="slide-bg">
+      <img id="bg6" src="" alt="" style="display:none"/>
+      <div class="slide-bg-gradient"></div>
+    </div>
+    <div style="position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 70% 60% at 50% 80%,#0f0a1a,#0d0d0d)"></div>
+
+    <div class="bg-upload-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      배경 사진 업로드
+      <input type="file" accept="image/*" onchange="setBg(this,'bg6')"/>
+    </div>
+
+    <div class="slide-content">
+      <p class="slide-label">06 — 예산</p>
+      <h2 class="slide-heading">Budget Plan</h2>
+
+      <div class="budget-rows" style="opacity:0" id="brows">
+        <div class="budget-row"><span class="icon">✈️</span><span class="name">항공권 (왕복)</span><span class="amt">₩ 000,000</span></div>
+        <div class="budget-row"><span class="icon">🏨</span><span class="name">숙박 (__ 박)</span><span class="amt">₩ 000,000</span></div>
+        <div class="budget-row"><span class="icon">🍽️</span><span class="name">식비</span><span class="amt">₩ 000,000</span></div>
+        <div class="budget-row"><span class="icon">🚌</span><span class="name">현지 교통</span><span class="amt">₩ 000,000</span></div>
+        <div class="budget-row"><span class="icon">🎡</span><span class="name">관광 / 입장료</span><span class="amt">₩ 000,000</span></div>
+        <div class="budget-row"><span class="icon">🛍️</span><span class="name">쇼핑 / 기타</span><span class="amt">₩ 000,000</span></div>
+      </div>
+      <div class="budget-total" style="opacity:0" id="btotal">
+        <span class="label">총 예산</span>
+        <span class="total">₩ 0,000,000</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 7: TIPS ── -->
+  <div class="slide" data-name="여행 팁">
+    <div class="slide-bg">
+      <img id="bg7" src="" alt="" style="display:none"/>
+      <div class="slide-bg-gradient"></div>
+    </div>
+    <div style="position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 60% 70% at 10% 30%,#1a100a,#0d0d0d)"></div>
+
+    <div class="bg-upload-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      배경 사진 업로드
+      <input type="file" accept="image/*" onchange="setBg(this,'bg7')"/>
+    </div>
+
+    <div class="slide-content">
+      <p class="slide-label">07 — 준비 & 팁</p>
+      <h2 class="slide-heading">Travel Tips</h2>
+      <div class="tips-grid">
+        <div class="tip-card"><div class="tip-icon">🌐</div><p class="tip-title">비자 & 입국</p><p class="tip-body">비자 필요 여부, 입국 조건 등을 작성하세요.</p></div>
+        <div class="tip-card"><div class="tip-icon">💱</div><p class="tip-title">화폐 & 환전</p><p class="tip-body">현지 화폐, 환전 방법 등을 작성하세요.</p></div>
+        <div class="tip-card"><div class="tip-icon">🌡️</div><p class="tip-title">날씨 & 옷차림</p><p class="tip-body">여행 시즌 날씨와 권장 옷차림을 작성하세요.</p></div>
+        <div class="tip-card"><div class="tip-icon">🏥</div><p class="tip-title">건강 & 안전</p><p class="tip-body">여행자 보험, 비상 연락처 등을 작성하세요.</p></div>
+        <div class="tip-card"><div class="tip-icon">📱</div><p class="tip-title">통신 & 데이터</p><p class="tip-body">현지 유심, 유용한 앱 등을 작성하세요.</p></div>
+        <div class="tip-card"><div class="tip-icon">🗣️</div><p class="tip-title">언어 & 문화</p><p class="tip-body">간단한 현지어, 문화 에티켓을 작성하세요.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 8: ENDING ── -->
+  <div class="slide slide-cover" data-name="마무리">
+    <div class="slide-bg">
+      <img id="bg8" src="" alt="" style="display:none"/>
+      <div class="slide-bg-gradient"></div>
+    </div>
+    <div style="position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 70% 60% at 60% 40%,#0a1214,#0d0d0d)"></div>
+
+    <div class="bg-upload-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      배경 사진 업로드
+      <input type="file" accept="image/*" onchange="setBg(this,'bg8')"/>
+    </div>
+
+    <div class="slide-content">
+      <p class="tag">✈ Thank you</p>
+      <h1><em>좋은 여행</em><br/>되길!</h1>
+      <p class="subtitle">발표를 들어주셔서 감사합니다.<br/>작성자: __________&nbsp;&nbsp;|&nbsp;&nbsp;제출일: 20__ . __ . __</p>
+    </div>
+  </div>
+
+</div><!-- /show -->
+
+<!-- BOTTOM NAV -->
+<div id="nav">
+  <button class="nav-btn" onclick="go(-1)" title="이전 (←)">&#8592;</button>
+  <div class="dot-row" id="dots"></div>
+  <span class="slide-counter" id="counter">1 / 9</span>
+  <button class="nav-btn" onclick="go(1)" title="다음 (→)">&#8594;</button>
 </div>
 
 <script>
-  // Tab chip toggle
-  document.querySelectorAll('.filter-tabs').forEach(tabs => {
-    tabs.querySelectorAll('.tab-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        tabs.querySelectorAll('.tab-chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-      });
-    });
+const slides = document.querySelectorAll('.slide');
+const dotsEl = document.getElementById('dots');
+const counterEl = document.getElementById('counter');
+const slideNameEl = document.getElementById('slide-name');
+let cur = 0;
+const total = slides.length;
+
+// Build dots
+slides.forEach((_,i)=>{
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===0?' active':'');
+  d.onclick = ()=> go(i - cur);
+  dotsEl.appendChild(d);
+});
+
+function updateUI(){
+  counterEl.textContent = (cur+1) + ' / ' + total;
+  slideNameEl.textContent = slides[cur].dataset.name || '';
+  document.querySelectorAll('.dot').forEach((d,i)=>{
+    d.classList.toggle('active', i===cur);
   });
-
-  // Navigation
-  function navigate(pageId, btn) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('page-' + pageId).classList.add('active');
-    if (btn) btn.classList.add('active');
+  // budget animation
+  if(slides[cur].classList.contains('slide-budget')){
+    const br = document.getElementById('brows');
+    const bt = document.getElementById('btotal');
+    if(br){ br.style.animation='fadeUp .7s .3s forwards'; br.style.opacity=0; }
+    if(bt){ bt.style.animation='fadeUp .7s .55s forwards'; bt.style.opacity=0; }
   }
+  // overview cards
+  const cards = slides[cur].querySelector('.anim-cards');
+  if(cards){ cards.style.animation='fadeUp .7s .4s forwards'; cards.style.opacity=0; }
+}
 
-  // Generate contribution grid
-  const grid = document.getElementById('contrib-grid');
-  const levels = ['', 'l1', 'l2', 'l3', 'l4'];
-  for (let i = 0; i < 17 * 7; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'contrib-cell';
-    const rand = Math.random();
-    if (rand > 0.6) {
-      const lvl = levels[Math.floor(rand * 4) + 1] || levels[4];
-      cell.classList.add(lvl);
-    }
-    grid.appendChild(cell);
-  }
+function go(dir){
+  if(dir===0) return;
+  const next = Math.max(0, Math.min(total-1, cur+dir));
+  if(next===cur) return;
+
+  const exitCls = dir>0 ? 'exit-left' : 'exit-right';
+  const enterCls = dir>0 ? 'enter-left' : 'enter-right';
+
+  slides[cur].classList.add(exitCls);
+  slides[next].classList.add(enterCls, 'active');
+
+  slides[cur].addEventListener('animationend', ()=>{
+    slides[cur].classList.remove('active', exitCls);
+    cur = next;
+    slides[cur].classList.remove(enterCls);
+    updateUI();
+  }, {once:true});
+}
+
+// Keyboard
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' ') go(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp') go(-1);
+});
+
+// Touch/swipe
+let tx=0;
+document.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; });
+document.addEventListener('touchend', e=>{
+  const dx = e.changedTouches[0].clientX - tx;
+  if(Math.abs(dx)>50) go(dx<0?1:-1);
+});
+
+// Photo helpers
+function setBg(input, imgId){
+  const file = input.files[0];
+  if(!file) return;
+  const img = document.getElementById(imgId);
+  img.src = URL.createObjectURL(file);
+  img.style.display = 'block';
+}
+
+function setSplitPhoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  const cell = input.parentElement;
+  let img = cell.querySelector('img[id^="split"]');
+  if(img){ img.src = URL.createObjectURL(file); img.style.display='block'; }
+  cell.querySelector('.upload-hint') && (cell.querySelector('.upload-hint').style.display='none');
+  input.style.pointerEvents='none';
+}
+
+function addGridPhoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  const cell = input.closest('.photo-cell');
+  let img = cell.querySelector('img');
+  if(!img){ img = document.createElement('img'); cell.appendChild(img); }
+  img.src = URL.createObjectURL(file);
+  img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover';
+  cell.querySelector('.upload-hint') && (cell.querySelector('.upload-hint').style.display='none');
+}
+
+function toggleFS(){
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+updateUI();
 </script>
-
 </body>
 </html>
