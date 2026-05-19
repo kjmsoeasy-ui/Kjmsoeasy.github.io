@@ -769,7 +769,7 @@ body{
       <div class="day-photo-strip-inner">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         사진 업로드
-        <img id="d2m-img" src="https://i.postimg.cc/y6gPZ9Yw/Screenshot-20260514-223237-Chrome.jpg" alt=""/>
+        <img id="d2m-img" src="https://i.postimg.cc/y6gPZ9Yw/Screenshot-20260514-223237-Chrome.jpg" alt="" style="display:block"/>
         <input type="file" accept="image/*" onchange="setStripPhoto(this,'d2m-img')"/>
       </div>
       <div class="day-photo-fade"></div>
@@ -1290,7 +1290,7 @@ function addGridPhoto(input){
   let img = cell.querySelector('img');
   if(!img){ img = document.createElement('img'); cell.appendChild(img); }
   img.src = URL.createObjectURL(file);
-  img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover';
+img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:2';
   const hint = cell.querySelector('.upload-hint');
   if(hint) hint.style.display='none';
 }
