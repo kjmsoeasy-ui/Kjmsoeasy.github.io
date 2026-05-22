@@ -660,7 +660,7 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
   <div class="slide-content">
     <p class="tag">✈ Thank you</p>
     <h1><em>좋은 여행</em><br/>되길!</h1>
-    <p class="subtitle">발표를 들어주셔서 감사합니다.<br/>작성자: __________&nbsp;&nbsp;|&nbsp;&nbsp;제출일: 20__ . __ . __</p>
+    <p class="subtitle">��표를 들어주셔서 감사합니다.<br/>작성자: __________&nbsp;&nbsp;|&nbsp;&nbsp;제출일: 20__ . __ . __</p>
   </div>
 </div>
 
@@ -741,29 +741,146 @@ document.addEventListener('touchend',e=>{
   if(Math.abs(dx)>50) go(dx<0?1:-1);
 });
 
-function setBg(input,imgId){
-  const file=input.files[0]; if(!file) return;
-  const img=document.getElementById(imgId); if(!img) return;
-  img.src=URL.createObjectURL(file);
-  img.style.display='block';
+// ═══════════════════════════════════════════════════════════
+// 📸 PHOTO STORAGE WITH LOCALSTORAGE
+// ═══════════════════════════════════════════════════════════
+
+// 페이지 로드 시 저장된 사진 복원
+function loadSavedPhotos(){
+  // 스트립 사진 (Day 페이지들)
+  ['s2-img','s3-img','s4-img','s5-img','s6-img','s7-img','s8-img','s9-img','s10-img'].forEach(imgId=>{
+    const savedUrl = localStorage.getItem(`strip_${imgId}`);
+    if(savedUrl){
+      const img = document.getElementById(imgId);
+      if(img){
+        img.src = savedUrl;
+        img.style.display = 'block';
+      }
+    }
+  });
+  
+  // 그리드 사진 (갤러리)
+  const gridPhotos = JSON.parse(localStorage.getItem('gridPhotos')) || [];
+  const photoCells = document.querySelectorAll('.slide-grid .photo-cell');
+  gridPhotos.forEach((photoData, index) => {
+    if(photoCells[index]){
+      const cell = photoCells[index];
+      let img = cell.querySelector('img');
+      if(!img){
+        img = document.createElement('img');
+        cell.appendChild(img);
+      }
+      img.src = photoData.src;
+      img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:2';
+      const hint = cell.querySelector('.upload-hint');
+      if(hint) hint.style.display = 'none';
+    }
+  });
+  
+  // 배경 사진들
+  ['bg0','bg1','bg12','bg13','bg14'].forEach(bgId=>{
+    const savedUrl = localStorage.getItem(`bg_${bgId}`);
+    if(savedUrl){
+      const img = document.getElementById(bgId);
+      if(img){
+        img.src = savedUrl;
+        img.style.display = 'block';
+      }
+    }
+  });
 }
 
-function setStripPhoto(input,imgId){
-  const file=input.files[0]; if(!file) return;
-  const img=document.getElementById(imgId); if(!img) return;
-  img.src=URL.createObjectURL(file);
-  img.style.display='block';
+function setBg(input, imgId){
+  const file = input.files[0];
+  if(!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    const img = document.getElementById(imgId);
+    if(!img) return;
+    
+    img.src = dataUrl;
+    img.style.display = 'block';
+    
+    // LocalStorage에 저장
+    localStorage.setItem(`bg_${imgId}`, dataUrl);
+  };
+  reader.readAsDataURL(file);
+}
+
+function setStripPhoto(input, imgId){
+  const file = input.files[0];
+  if(!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    const img = document.getElementById(imgId);
+    if(!img) return;
+    
+    img.src = dataUrl;
+    img.style.display = 'block';
+    
+    // LocalStorage에 저장
+    localStorage.setItem(`strip_${imgId}`, dataUrl);
+  };
+  reader.readAsDataURL(file);
 }
 
 function addGridPhoto(input){
-  const file=input.files[0]; if(!file) return;
-  const cell=input.closest('.photo-cell');
-  let img=cell.querySelector('img');
-  if(!img){img=document.createElement('img');cell.appendChild(img);}
-  img.src=URL.createObjectURL(file);
-  img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:2';
-  const hint=cell.querySelector('.upload-hint');
-  if(hint) hint.style.display='none';
+  const file = input.files[0];
+  if(!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    const cell = input.closest('.photo-cell');
+    
+    let img = cell.querySelector('img');
+    if(!img){
+      img = document.createElement('img');
+      cell.appendChild(img);
+    }
+    
+    img.src = dataUrl;
+    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:2';
+    
+    const hint = cell.querySelector('.upload-hint');
+    if(hint) hint.style.display = 'none';
+    
+    // LocalStorage에 저장
+    saveGridPhotos();
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveGridPhotos(){
+  const photoCells = document.querySelectorAll('.slide-grid .photo-cell');
+  const gridPhotos = [];
+  
+  photoCells.forEach(cell => {
+    const img = cell.querySelector('img');
+    if(img && img.src){
+      gridPhotos.push({ src: img.src });
+    }
+  });
+  
+  localStorage.setItem('gridPhotos', JSON.stringify(gridPhotos));
+}
+
+// 사진 삭제 기능 (선택사항)
+function clearAllPhotos(){
+  if(confirm('모든 사진을 삭제하시겠습니까?')){
+    localStorage.removeItem('gridPhotos');
+    ['s2-img','s3-img','s4-img','s5-img','s6-img','s7-img','s8-img','s9-img','s10-img'].forEach(id=>{
+      localStorage.removeItem(`strip_${id}`);
+    });
+    ['bg0','bg1','bg12','bg13','bg14'].forEach(id=>{
+      localStorage.removeItem(`bg_${id}`);
+    });
+    location.reload();
+  }
 }
 
 function toggleFS(){
@@ -772,6 +889,8 @@ function toggleFS(){
 }
 
 updateUI();
+// 페이지 로드 시 저장된 사진 복원
+loadSavedPhotos();
 </script>
 </body>
 </html>
