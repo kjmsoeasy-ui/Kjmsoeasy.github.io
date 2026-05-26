@@ -50,6 +50,7 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
 .time-morning{--accent:#f5c96b;--accent-dim:rgba(245,201,107,.15);}
 .time-lunch{--accent:#f4a261;--accent-dim:rgba(244,162,97,.15);}
 .time-evening{--accent:#a8c5da;--accent-dim:rgba(168,197,218,.15);}
+.time-night{--accent:#9b8ec4;--accent-dim:rgba(155,142,196,.15);}
 
 .day-single-card{
   margin-top:2rem;padding:2.5rem 3rem;background:var(--glass);
@@ -78,6 +79,50 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
 .day-num{font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,5vw,4.5rem);font-weight:300;line-height:1;}
 .day-sub{font-family:'Cormorant Garamond',serif;font-size:clamp(1.2rem,2.5vw,2rem);font-style:italic;color:var(--gold2);}
 
+/* ── TRANSIT ROUTE CARD ── */
+.transit-route{
+  margin-top:1.8rem;display:flex;flex-direction:column;gap:0;max-width:720px;opacity:0;
+}
+.slide.active .transit-route{animation:fadeUp .75s .4s forwards;}
+.route-step{
+  display:flex;align-items:stretch;gap:0;
+}
+.route-step-line{
+  display:flex;flex-direction:column;align-items:center;width:36px;flex-shrink:0;
+}
+.route-dot{
+  width:12px;height:12px;border-radius:50%;border:2px solid var(--accent,var(--gold));
+  background:var(--accent-dim,rgba(201,168,76,.15));flex-shrink:0;margin-top:.9rem;
+}
+.route-dot.start{background:var(--accent,var(--gold));}
+.route-dot.end{background:var(--accent,var(--gold));}
+.route-line-seg{
+  width:2px;flex:1;min-height:18px;
+  background:linear-gradient(to bottom,var(--accent,var(--gold)),rgba(201,168,76,.2));
+  margin:0 auto;
+}
+.route-step-body{
+  flex:1;padding:.6rem .9rem .6rem 0;margin-bottom:.2rem;
+}
+.route-place{font-size:.9rem;font-weight:500;color:var(--white);line-height:1.3;}
+.route-meta{font-size:.75rem;color:var(--dim);margin-top:.2rem;line-height:1.5;}
+.route-connector{
+  display:flex;align-items:center;gap:.6rem;padding:.3rem .9rem .3rem 0;
+  margin-left:36px;margin-bottom:.1rem;
+}
+.route-connector-badge{
+  display:inline-flex;align-items:center;gap:.4rem;padding:.25rem .7rem;
+  background:var(--accent-dim,rgba(201,168,76,.1));border:1px solid var(--accent,var(--gold));
+  border-radius:12px;font-size:.68rem;letter-spacing:.1em;color:var(--accent,var(--gold));
+}
+.route-connector-time{font-size:.72rem;color:var(--dim);opacity:.7;}
+.route-notice{
+  margin-top:1rem;margin-left:36px;padding:.7rem 1rem;
+  background:rgba(155,142,196,.08);border:1px solid rgba(155,142,196,.3);
+  border-radius:3px;font-size:.78rem;color:var(--dim);line-height:1.6;
+}
+.route-notice strong{color:#c5b8e8;}
+
 /* ── PHOTO STRIP ── */
 .day-photo-strip{
   position:absolute;right:0;top:0;bottom:0;width:38%;overflow:hidden;z-index:3;
@@ -87,12 +132,10 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
   display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;
   position:relative;overflow:hidden;
 }
-/* invisible file input — covers entire strip, always on top */
 .strip-file-input{
   position:absolute;inset:0;opacity:0;cursor:pointer;
   width:100%;height:100%;z-index:10;
 }
-/* hint — visible before photo */
 .strip-hint{
   position:relative;z-index:1;
   display:flex;flex-direction:column;align-items:center;gap:.5rem;
@@ -101,19 +144,16 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
 }
 .strip-hint svg{width:28px;height:28px;opacity:.5;}
 .day-photo-strip-inner:hover .strip-hint{color:var(--gold);}
-/* uploaded image */
 .strip-img{
   position:absolute;inset:0;width:100%;height:100%;
   object-fit:cover;display:none;z-index:2;
 }
 .strip-img.loaded{display:block;}
-/* left-side gradient fade */
 .day-photo-fade{
   position:absolute;left:0;top:0;bottom:0;width:120px;
   background:linear-gradient(to right,var(--bg),transparent);
   z-index:4;pointer-events:none;
 }
-/* shrink main content when strip is present */
 .has-photo-strip .slide-content{padding-right:42%;}
 
 /* GRID */
@@ -197,7 +237,7 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
 }
 .nav-btn:hover{background:rgba(201,168,76,.15);border-color:var(--gold);}
 .slide-counter{font-size:.75rem;letter-spacing:.15em;color:var(--dim);min-width:55px;text-align:center;}
-.dot-row{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;max-width:260px;}
+.dot-row{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;max-width:280px;}
 .dot{width:5px;height:5px;border-radius:50%;background:var(--border);cursor:pointer;transition:background .2s,transform .2s;}
 .dot.active{background:var(--gold);transform:scale(1.4);}
 .dot.day-sep{width:1px;height:12px;border-radius:0;background:var(--border);cursor:default;margin:0 2px;}
@@ -228,6 +268,9 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
   .grid-photos{grid-template-columns:1fr 1fr;}
   #nav{bottom:1.2rem;}
   .day-single-card{padding:1.5rem;}
+  .transit-route{margin-left:0;}
+  .route-notice{margin-left:0;}
+  .route-connector{margin-left:0;}
 }
 </style>
 </head>
@@ -275,7 +318,7 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
       <div class="budget-row" style="flex-direction:column;align-items:flex-start;gap:.4rem">
         <span class="icon">🌍</span>
         <span style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)">여행지</span>
-        <span style="font-size:.85rem;color:var(--dim)">일본 / 이케부쿠로</span>
+        <span style="font-size:.85rem;color:var(--dim)">일본 / 도쿄</span>
       </div>
       <div class="budget-row" style="flex-direction:column;align-items:flex-start;gap:.4rem">
         <span class="icon">📅</span>
@@ -296,8 +339,6 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
     <p class="slide-body" style="max-width:70ch">공정 여행(Fair Travel)은 여행자와 현지 주민이 평등한 관계를 맺고, 환경 파괴를 최소화하며 지역 사회의 경제와 문화에 기여하는 '착한 여행'입니다.</p>
   </div>
 </div>
-
-<!-- ── SLIDES 2~10: DAY PAGES ── -->
 
 <!-- SLIDE 2: Day1 저녁 — 인천공항 출발 -->
 <div class="slide slide-day-single time-evening has-photo-strip" data-name="Day 1 — 출발">
@@ -355,8 +396,8 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
       <div class="day-single-time-badge"><span class="day-single-icon">✈️</span> 비행기</div>
       <p class="day-single-body">비행기 탑승</p>
       <div class="day-single-detail-list">
+        <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">ICN 서울 인천국제공항 T2</span></div>
         <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">대한항공 KE751 에어버스 A350-900 일반석</span></div>
-        <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">도쿄 국제공항(하네다 공항)</span></div>
         <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">20:30 ~ 22:50</span></div>
       </div>
     </div>
@@ -387,7 +428,7 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
       <div class="day-single-time-badge"><span class="day-single-icon">🏨</span> 호텔</div>
       <p class="day-single-body">센추리온 호텔 이케부쿠로 스테이션</p>
       <div class="day-single-detail-list">
-        <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">지하철 이용. 하네다 공항 제3터미널 → 게이큐카마타 → 시나가와 → 오사키 → 이케부쿠로. 도보 7분. 약 1시간 소요. ¥668 </span></div>
+        <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">지하철 ¥668 — 하네다 공항 제3터미널 → 게이큐카마타 → 시나가와 → 오사키 → 이케부쿠로. 도보 7분. 약 1시간 소요.</span></div>
         <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">호텔 비용 102,761원</span></div>
         <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">리무진 버스보다 지하철이 비용 절감 + 소요 시간 비슷</span></div>
       </div>
@@ -578,7 +619,7 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
       <div class="day-single-time-badge"><span class="day-single-icon">🌙</span> 저녁</div>
       <p class="day-single-body">션샤인 시티<br/><span style="font-size:.85rem;opacity:.7">(상점·식당·전망대·수족관·박물관·실내 테마파크가 있는 복합 쇼핑몰)</span></p>
       <div class="day-single-detail-list">
-        <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">60층 전망대 — 날이 좋으면 후지산 조망 가능. 그 외 활동 후 1시30분까지 공항.</span></div>
+        <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">60층 전망대 — 날이 좋으면 후지산 조망 가능</span></div>
         <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">3층 '가샤폰 백화점 이케부쿠로 총본점' — 3,000대 이상의 캡슐 토이, 기네스 등재 세계 최대</span></div>
         <div class="detail-item"><div class="detail-dot"></div><span class="detail-text">2층 실바니안 · 포켓몬센터 · 리락쿠마 · 스누피 · 짱구 등 굿즈샵</span></div>
       </div>
@@ -586,11 +627,90 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
   </div>
 </div>
 
-<!-- ── SLIDE 11: PHOTO GALLERY ── -->
+<!-- ── SLIDE 11 (NEW): Day3 심야 — 호텔 → 하네다 공항 귀국 ── -->
+<div class="slide slide-day-single time-night" data-name="Day 3 — 귀국">
+  <div style="position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 60% 70% at 20% 80%,#0a0514,#0d0d0d)"></div>
+  <div class="slide-content" style="justify-content:center;">
+    <p class="slide-label">11 — Day 3 · 심야</p>
+    <div class="day-pair-header">
+      <span class="day-num">Day <em style="font-style:normal;color:var(--gold2)">3</em></span>
+      <span class="day-sub">호텔 → 하네다 공항 귀국</span>
+    </div>
+
+    <div class="transit-route">
+
+      <!-- 출발지 -->
+      <div class="route-step">
+        <div class="route-step-line">
+          <div class="route-dot start"></div>
+          <div class="route-line-seg"></div>
+        </div>
+        <div class="route-step-body">
+          <div class="route-place">🏨 센추리온 호텔 이케부쿠로 스테이션 출발</div>
+          <div class="route-meta">새벽 1:00 이전 체크아웃 · 짐 미리 준비</div>
+        </div>
+      </div>
+
+      <!-- 도보 -->
+      <div class="route-connector">
+        <div class="route-connector-badge">🚶 도보 약 5분</div>
+        <span class="route-connector-time">이케부쿠로역 서쪽 출구 방향</span>
+      </div>
+
+      <!-- 이케부쿠로역 -->
+      <div class="route-step">
+        <div class="route-step-line">
+          <div class="route-dot"></div>
+          <div class="route-line-seg"></div>
+        </div>
+        <div class="route-step-body">
+          <div class="route-place">🚇 이케부쿠로역 승차</div>
+          <div class="route-meta">도쿄 메트로 유라쿠초선 승차 (신키바 방면) · 새벽 1:10~1:15경 출발 목표<br/>⚠️ 심야 막차 확인 필수 — 유라쿠초선 이케부쿠로발 막차 약 새벽 0:50 전후</div>
+        </div>
+      </div>
+
+      <!-- 환승 안내 -->
+      <div class="route-connector">
+        <div class="route-connector-badge">🔄 환승 약 3분</div>
+        <span class="route-connector-time">신바시역 or 오타큐 경유 케이큐선 환승</span>
+      </div>
+
+      <!-- 택시 대안 강조 -->
+      <div class="route-notice">
+        <strong>⚠️ 새벽 1:30 출발 — 막차 여부 반드시 확인!</strong><br/>
+        도쿄 지하철은 새벽 0:30~1:00 사이에 대부분 종료됩니다.<br/>
+        새벽 1:30 호텔 출발 시 <strong>지하철 운행이 종료된 경우가 많습니다.</strong><br/>
+        이 경우 <strong>택시(심야할증 포함 약 ¥6,000~8,000)</strong> 또는<br/>
+        <strong>하네다 공항행 심야 버스(일부 노선 운행)</strong>를 이용하세요.
+      </div>
+
+      <!-- 환승 2 -->
+      <div class="route-connector">
+        <div class="route-connector-badge">🚕 택시 대안 (심야)</div>
+        <span class="route-connector-time">이케부쿠로 → 하네다 약 40~50분</span>
+      </div>
+
+      <!-- 도착 -->
+      <div class="route-step">
+        <div class="route-step-line">
+          <div class="route-dot end"></div>
+        </div>
+        <div class="route-step-body">
+          <div class="route-place">✈️ 하네다 공항 국제선 터미널 도착</div>
+          <div class="route-meta">출발 2시간 전 도착 권장 · 탑승 수속 및 출국 심사</div>
+        </div>
+      </div>
+
+    </div><!-- /transit-route -->
+
+  </div>
+</div>
+
+<!-- ── SLIDE 12: PHOTO GALLERY ── -->
 <div class="slide slide-grid" data-name="사진 갤러리">
   <div style="position:absolute;inset:0;background:#0d0d0d"></div>
   <div class="slide-content">
-    <p class="slide-label">11 — 갤러리</p>
+    <p class="slide-label">12 — 갤러리</p>
     <h2 class="slide-heading">Photo Gallery</h2>
     <div class="grid-photos">
       <div class="photo-cell"><img src="https://i.postimg.cc/HxXZj6QT/images-(5).jpg" alt=""/><input type="file" accept="image/*" onchange="addGridPhoto(this)"/></div>
@@ -603,7 +723,7 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
   </div>
 </div>
 
-<!-- ── SLIDE 12: BUDGET ── -->
+<!-- ── SLIDE 13: BUDGET ── -->
 <div class="slide slide-budget" data-name="예산 계획">
   <div class="slide-bg"><img id="bg12" src="" alt="" style="display:none"/><div class="slide-bg-gradient"></div></div>
   <div style="position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 70% 60% at 50% 80%,#0f0a1a,#0d0d0d)"></div>
@@ -612,11 +732,11 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
     배경 사진 업로드<input type="file" accept="image/*" onchange="setBg(this,'bg12')"/>
   </div>
   <div class="slide-content">
-    <p class="slide-label">12 — 예산</p>
+    <p class="slide-label">13 — 예산</p>
     <h2 class="slide-heading">Budget Plan</h2>
     <div class="budget-rows" style="opacity:0" id="brows">
-      <div class="budget-row"><span class="icon">✈️</span><span class="name">비행기 (왕복)</span><span class="amt">₩528,400</span></div>
-      <div class="budget-row"><span class="icon">🏨</span><span class="name">숙박 (2박)</span><span class="amt">₩ 102,761</span></div>
+      <div class="budget-row"><span class="icon">✈️</span><span class="name"> (왕복)</span><span class="amt">₩528,400</span></div>
+      <div class="budget-row"><span class="icon">🏨</span><span class="name">숙박 (_2_ 박)</span><span class="amt">₩ 102,761</span></div>
       <div class="budget-row"><span class="icon">🍽️</span><span class="name">식비</span><span class="amt">₩ 80,000</span></div>
       <div class="budget-row"><span class="icon">🚌</span><span class="name">현지 교통</span><span class="amt">₩ 25,000</span></div>
       <div class="budget-row"><span class="icon">🎡</span><span class="name">관광 / 입장료</span><span class="amt">₩33,243</span></div>
@@ -629,7 +749,7 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
   </div>
 </div>
 
-<!-- ── SLIDE 13: TIPS ── -->
+<!-- ── SLIDE 14: TIPS ── -->
 <div class="slide" data-name="여행 팁">
   <div class="slide-bg"><img id="bg13" src="" alt="" style="display:none"/><div class="slide-bg-gradient"></div></div>
   <div style="position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 60% 70% at 10% 30%,#1a100a,#0d0d0d)"></div>
@@ -638,7 +758,7 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
     배경 사진 업로드<input type="file" accept="image/*" onchange="setBg(this,'bg13')"/>
   </div>
   <div class="slide-content">
-    <p class="slide-label">13 — 준비 & 팁</p>
+    <p class="slide-label">14 — 준비 & 팁</p>
     <h2 class="slide-heading">Travel Tips</h2>
     <div class="tips-grid">
       <div class="tip-card"><div class="tip-icon">🌐</div><p class="tip-title">Visit Japan Web</p><p class="tip-body">입국 절차(입국 심사, 세관 신고) 및 면세 구입에 필 요한 정보를 등록할 수 있는 웹 서비.스</p></div>
@@ -650,7 +770,7 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
   </div>
 </div>
 
-<!-- ── SLIDE 14: ENDING ── -->
+<!-- ── SLIDE 15: ENDING ── -->
 <div class="slide slide-cover" data-name="마무리">
   <div class="slide-bg"><img id="bg14" src="" alt="" style="display:none"/><div class="slide-bg-gradient"></div></div>
   <div style="position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 70% 60% at 60% 40%,#0a1214,#0d0d0d)"></div>
@@ -670,7 +790,7 @@ body{font-family:'Outfit',sans-serif;color:var(--white);cursor:default;}
 <div id="nav">
   <button class="nav-btn" onclick="go(-1)">&#8592;</button>
   <div class="dot-row" id="dots"></div>
-  <span class="slide-counter" id="counter">1 / 15</span>
+  <span class="slide-counter" id="counter">1 / 16</span>
   <button class="nav-btn" onclick="go(1)">&#8594;</button>
 </div>
 
@@ -682,8 +802,8 @@ const slideNameEl = document.getElementById('slide-name');
 let cur = 0;
 const total = slides.length;
 
-// separators before these slide indices
-const daySeps = [2, 5, 8, 11];
+// separators before these slide indices (Day1=2, Day2=5, Day3=8, Gallery=12)
+const daySeps = [2, 5, 8, 12];
 
 slides.forEach((_,i)=>{
   if(daySeps.includes(i)){
@@ -742,115 +862,72 @@ document.addEventListener('touchend',e=>{
   if(Math.abs(dx)>50) go(dx<0?1:-1);
 });
 
-// ═══════════════════════════════════════════════════════════
-// 📸 PHOTO STORAGE WITH LOCALSTORAGE
-// ═══════════════════════════════════════════════════════════
-
-// 페이지 로드 시 저장된 사진 복원
 function loadSavedPhotos(){
-  // 스트립 사진 (Day 페이지들)
   ['s2-img','s3-img','s4-img','s5-img','s6-img','s7-img','s8-img','s9-img','s10-img'].forEach(imgId=>{
     const savedUrl = localStorage.getItem(`strip_${imgId}`);
     if(savedUrl){
       const img = document.getElementById(imgId);
-      if(img){
-        img.src = savedUrl;
-        img.style.display = 'block';
-      }
+      if(img){ img.src = savedUrl; img.style.display = 'block'; }
     }
   });
-  
-  // 그리드 사진 (갤러리)
   const gridPhotos = JSON.parse(localStorage.getItem('gridPhotos')) || [];
   const photoCells = document.querySelectorAll('.slide-grid .photo-cell');
   gridPhotos.forEach((photoData, index) => {
     if(photoCells[index]){
       const cell = photoCells[index];
       let img = cell.querySelector('img');
-      if(!img){
-        img = document.createElement('img');
-        cell.appendChild(img);
-      }
+      if(!img){ img = document.createElement('img'); cell.appendChild(img); }
       img.src = photoData.src;
       img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:2';
       const hint = cell.querySelector('.upload-hint');
       if(hint) hint.style.display = 'none';
     }
   });
-  
-  // 배경 사진들
   ['bg0','bg1','bg12','bg13','bg14'].forEach(bgId=>{
     const savedUrl = localStorage.getItem(`bg_${bgId}`);
     if(savedUrl){
       const img = document.getElementById(bgId);
-      if(img){
-        img.src = savedUrl;
-        img.style.display = 'block';
-      }
+      if(img){ img.src = savedUrl; img.style.display = 'block'; }
     }
   });
 }
 
 function setBg(input, imgId){
-  const file = input.files[0];
-  if(!file) return;
-  
+  const file = input.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = (e) => {
     const dataUrl = e.target.result;
-    const img = document.getElementById(imgId);
-    if(!img) return;
-    
-    img.src = dataUrl;
-    img.style.display = 'block';
-    
-    // LocalStorage에 저장
+    const img = document.getElementById(imgId); if(!img) return;
+    img.src = dataUrl; img.style.display = 'block';
     localStorage.setItem(`bg_${imgId}`, dataUrl);
   };
   reader.readAsDataURL(file);
 }
 
 function setStripPhoto(input, imgId){
-  const file = input.files[0];
-  if(!file) return;
-  
+  const file = input.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = (e) => {
     const dataUrl = e.target.result;
-    const img = document.getElementById(imgId);
-    if(!img) return;
-    
-    img.src = dataUrl;
-    img.style.display = 'block';
-    
-    // LocalStorage에 저장
+    const img = document.getElementById(imgId); if(!img) return;
+    img.src = dataUrl; img.style.display = 'block';
     localStorage.setItem(`strip_${imgId}`, dataUrl);
   };
   reader.readAsDataURL(file);
 }
 
 function addGridPhoto(input){
-  const file = input.files[0];
-  if(!file) return;
-  
+  const file = input.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = (e) => {
     const dataUrl = e.target.result;
     const cell = input.closest('.photo-cell');
-    
     let img = cell.querySelector('img');
-    if(!img){
-      img = document.createElement('img');
-      cell.appendChild(img);
-    }
-    
+    if(!img){ img = document.createElement('img'); cell.appendChild(img); }
     img.src = dataUrl;
     img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:2';
-    
     const hint = cell.querySelector('.upload-hint');
     if(hint) hint.style.display = 'none';
-    
-    // LocalStorage에 저장
     saveGridPhotos();
   };
   reader.readAsDataURL(file);
@@ -859,29 +936,11 @@ function addGridPhoto(input){
 function saveGridPhotos(){
   const photoCells = document.querySelectorAll('.slide-grid .photo-cell');
   const gridPhotos = [];
-  
   photoCells.forEach(cell => {
     const img = cell.querySelector('img');
-    if(img && img.src){
-      gridPhotos.push({ src: img.src });
-    }
+    if(img && img.src) gridPhotos.push({ src: img.src });
   });
-  
   localStorage.setItem('gridPhotos', JSON.stringify(gridPhotos));
-}
-
-// 사진 삭제 기능 (선택사항)
-function clearAllPhotos(){
-  if(confirm('모든 사진을 삭제하시겠습니까?')){
-    localStorage.removeItem('gridPhotos');
-    ['s2-img','s3-img','s4-img','s5-img','s6-img','s7-img','s8-img','s9-img','s10-img'].forEach(id=>{
-      localStorage.removeItem(`strip_${id}`);
-    });
-    ['bg0','bg1','bg12','bg13','bg14'].forEach(id=>{
-      localStorage.removeItem(`bg_${id}`);
-    });
-    location.reload();
-  }
 }
 
 function toggleFS(){
@@ -890,7 +949,6 @@ function toggleFS(){
 }
 
 updateUI();
-// 페이지 로드 시 저장된 사진 복원
 loadSavedPhotos();
 </script>
 </body>
